@@ -1,4 +1,4 @@
-import { Outlet, Route, Routes } from "react-router-dom";
+import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 import {
   Dashboard,
   Docs,
@@ -6,10 +6,13 @@ import {
   Landing,
   News,
   NotFound,
+  Onboarding,
   Signin,
   Signup,
 } from "./pages";
 import { AuthHeader, Footer, Header } from "./components";
+import { useAuth } from "./contexts/AuthContext";
+import { useOnboarding } from "./contexts/OnboardingContext";
 
 const AuthLayout = () => {
   return (
@@ -33,6 +36,21 @@ const PublicLayout = () => {
 };
 
 const PrivateLayout = () => {
+  const { isAuthenticated, loading: authLoading } = useAuth();
+  const { isOnboardingComplete, loading: onboardingLoading } = useOnboarding();
+
+  if (authLoading || onboardingLoading) {
+    return null;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/signin" replace />;
+  }
+
+  if (!isOnboardingComplete) {
+    return <Navigate to="/onboarding" replace />;
+  }
+
   return (
     <section className="min-h-screen bg-[#0E131C]">
       <Outlet />
@@ -40,12 +58,30 @@ const PrivateLayout = () => {
   );
 };
 
+const OnboardingRoute = () => {
+  const { isAuthenticated, loading: authLoading } = useAuth();
+  const { isOnboardingComplete, loading: onboardingLoading } = useOnboarding();
+
+  if (authLoading || onboardingLoading) {
+    return null;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/signin" replace />;
+  }
+
+  if (isOnboardingComplete) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <Onboarding />;
+};
+
 const App = () => {
   return (
     <Routes>
       <Route element={<PublicLayout />}>
         <Route index path="/" element={<Landing />} />
-
         <Route path="/docs" element={<Docs />} />
         <Route path="/how-it-works" element={<HowItWorks />} />
         <Route path="/news" element={<News />} />
@@ -56,6 +92,9 @@ const App = () => {
         <Route path="/signin" element={<Signin />} />
         <Route path="/signup" element={<Signup />} />
       </Route>
+
+      {/* Onboarding route with its own logic */}
+      <Route path="/onboarding" element={<OnboardingRoute />} />
 
       <Route element={<PrivateLayout />}>
         <Route path="/dashboard" element={<Dashboard />} />

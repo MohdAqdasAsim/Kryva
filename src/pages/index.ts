@@ -4,6 +4,7 @@ import Signup from "./auth/Signup";
 
 // Private Pages
 import Dashboard from "./private/Dashboard";
+import Onboarding from "./private/Onboarding";
 
 // Public Pages
 import Landing from "./public/Landing";
@@ -12,4 +13,5 @@ import Docs from "./public/Docs";
 import HowItWorks from "./public/HowItWorks";
 import NotFound from "./public/NotFound";
 
-export { Landing, Dashboard, Signin, Signup, NotFound, Docs, HowItWorks, News };
+
+export { Landing, Dashboard, Signin, Signup, NotFound, Docs, HowItWorks, News, Onboarding };
