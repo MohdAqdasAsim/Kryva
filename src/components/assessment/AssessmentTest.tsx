@@ -153,36 +153,23 @@ Important: Return ONLY the JSON array, no additional text or markdown formatting
         ? config.topics[0]
         : "core concepts";
 
-    return [
-      {
-        id: "q1",
-        question: `What is a fundamental concept in ${topicText}?`,
-        options: [
-          "Understanding core principles and methodologies",
-          "Memorizing facts without context",
-          "Skipping foundational topics",
-          "Avoiding challenging problems",
-        ],
-        correctAnswer: 0,
-        difficulty: "easy",
-        topic: topicText,
-        explanation: "Understanding core principles is essential for mastery.",
-      },
-      {
-        id: "q2",
-        question: `Which approach is most effective for learning ${topicText}?`,
-        options: [
-          "Passive reading only",
-          "Active practice and problem-solving",
-          "Last-minute cramming",
-          "Avoiding difficult topics",
-        ],
-        correctAnswer: 1,
-        difficulty: "medium",
-        topic: topicText,
-        explanation: "Active engagement leads to deeper understanding.",
-      },
-    ];
+    return Array.from({ length: 15 }, (_, i) => ({
+      id: `q${i + 1}`,
+      question: `Question ${i + 1}: What is a fundamental concept in ${topicText}?`,
+      options: [
+        "Understanding core principles and methodologies",
+        "Memorizing facts without context",
+        "Skipping foundational topics",
+        "Avoiding challenging problems",
+      ],
+      correctAnswer: 0,
+      difficulty: (i < 5 ? "easy" : i < 10 ? "medium" : "hard") as
+        | "easy"
+        | "medium"
+        | "hard",
+      topic: topicText,
+      explanation: "Understanding core principles is essential for mastery.",
+    }));
   };
 
   const handleAnswerSelect = (answerIndex: number) => {
@@ -212,13 +199,19 @@ Important: Return ONLY the JSON array, no additional text or markdown formatting
   };
 
   const handleSubmit = () => {
+    // Update answers with current selection before submitting
+    const finalAnswers = [...answers];
+    if (selectedAnswer !== null) {
+      finalAnswers[currentQuestionIndex] = selectedAnswer;
+    }
+
     let correctCount = 0;
     const topicPerformance: Record<string, { correct: number; total: number }> =
       {};
     const skillGaps: string[] = [];
 
     questions.forEach((question, index) => {
-      const isCorrect = answers[index] === question.correctAnswer;
+      const isCorrect = finalAnswers[index] === question.correctAnswer;
       if (isCorrect) correctCount++;
 
       if (!topicPerformance[question.topic]) {
@@ -245,7 +238,7 @@ Important: Return ONLY the JSON array, no additional text or markdown formatting
       timeElapsed,
       topicPerformance,
       skillGaps,
-      answers: answers.map((answer, index) => ({
+      answers: finalAnswers.map((answer, index) => ({
         questionId: questions[index].id,
         question: questions[index].question,
         selectedAnswer: answer,
@@ -307,6 +300,7 @@ Important: Return ONLY the JSON array, no additional text or markdown formatting
     return (
       <div className="min-h-screen bg-[#0E131C] flex items-center justify-center">
         <div className="text-center">
+          <div className="w-16 h-16 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin mx-auto mb-4" />
           <p className="text-white text-lg font-semibold mb-2 transition-opacity duration-300">
             {loadingMessages[messageIndex]}
             {dots}
@@ -349,6 +343,7 @@ Important: Return ONLY the JSON array, no additional text or markdown formatting
 
   const currentQuestion = questions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+  const answeredCount = answers.filter((a) => a !== null).length;
 
   return (
     <div className="min-h-screen bg-[#0E131C] p-6">
@@ -509,7 +504,8 @@ Important: Return ONLY the JSON array, no additional text or markdown formatting
                   Submit Assessment?
                 </h3>
                 <p className="text-gray-400 text-center text-sm">
-                  You have answered {answers.filter((a) => a !== null).length}{" "}
+                  You have answered{" "}
+                  {selectedAnswer !== null ? answeredCount + 1 : answeredCount}{" "}
                   out of {questions.length} questions.
                 </p>
               </div>
